@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JARVIS Mark VII Pro HUD</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="cyan">
+  <div class="hud-container">
+    <div class="background-grid"></div>
+    <div class="vignette"></div>
+    <canvas id="particle-canvas"></canvas>
+
+    <!-- Header / Top Bar -->
+    <header class="hud-header">
+      <div class="header-left">
+        <span class="hud-brand">J.A.R.V.I.S.</span>
+        <span class="hud-tag">MARK VII // PRO SYSTEM ONLINE</span>
+      </div>
+      <div class="header-center">
+        <div class="time-display" id="clock-display">00:00:00</div>
+        <div class="date-display" id="date-display">SEC-LOC: ONLINE</div>
+      </div>
+      <div class="header-right">
+        <!-- Theme Switcher & Audio Toggle -->
+        <div class="theme-controls">
+          <button class="theme-btn theme-cyan active" data-theme-val="cyan" title="Cyan Theme"></button>
+          <button class="theme-btn theme-gold" data-theme-val="gold" title="Crimson Gold Theme"></button>
+          <button class="theme-btn theme-violet" data-theme-val="violet" title="Stealth Violet Theme"></button>
+          <button id="sound-toggle" class="sound-btn active" title="Toggle SFX Audio">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span id="system-status-text">SYSTEM SECURE</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main HUD Grid -->
+    <main class="hud-main">
+      <!-- Left Diagnostics Panel -->
+      <aside class="panel panel-left">
+        <div class="panel-header">SYS DIAGNOSTICS</div>
+        <div class="stat-box">
+          <div class="stat-label">CPU CORE LOAD</div>
+          <div class="stat-bar-container">
+            <div class="stat-bar" id="cpu-bar" style="width: 42%;"></div>
+          </div>
+          <div class="stat-value" id="cpu-val">42% // 4.8 GHz</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">NEURAL NETWORK ENGINE</div>
+          <div class="stat-bar-container">
+            <div class="stat-bar" id="nn-bar" style="width: 88%;"></div>
+          </div>
+          <div class="stat-value" id="nn-val">88% SYNAPSE FLUX</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">MEMORY MATRIX</div>
+          <div class="stat-bar-container">
+            <div class="stat-bar" id="ram-bar" style="width: 64%;"></div>
+          </div>
+          <div class="stat-value" id="ram-val">64.2 / 128 GB</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">QUANTUM ENCRYPTION</div>
+          <div class="stat-value highlight">2048-BIT ACTIVE</div>
+        </div>
+
+        <div class="panel-header margin-top">QUICK PROTOCOLS</div>
+        <div class="protocol-grid">
+          <button class="protocol-btn" data-protocol="house-party">HOUSE PARTY</button>
+          <button class="protocol-btn" data-protocol="sentry">SENTRY MODE</button>
+          <button class="protocol-btn" data-protocol="stealth">STEALTH MODE</button>
+          <button class="protocol-btn" data-protocol="clean-slate">CLEAN SLATE</button>
+        </div>
+
+        <div class="panel-header margin-top">TARGET LOCK & SPECTRUM</div>
+        <div class="radar-box">
+          <canvas id="radar-canvas" width="200" height="150"></canvas>
+        </div>
+      </aside>
+
+      <!-- Center ARC Reactor HUD Core -->
+      <section class="center-hud">
+        <div class="arc-reactor-wrapper">
+          <canvas id="arc-reactor-canvas" width="500" height="500"></canvas>
+          <div class="core-overlay">
+            <div class="core-text" id="core-status">JARVIS ACTIVE</div>
+            <div class="sub-text" id="core-subtext">READY FOR COMMANDS</div>
+          </div>
+        </div>
+
+        <!-- Voice / Visualizer Controls -->
+        <div class="interaction-bar">
+          <button id="mic-btn" class="hud-btn glow-btn">
+            <svg class="mic-icon" viewBox="0 0 24 24" width="24" height="24">
+              <path fill="currentColor" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+              <path fill="currentColor" d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+            <span id="mic-text">START VOICE LISTEN</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Right Log & Command Panel -->
+      <aside class="panel panel-right">
+        <div class="panel-header">COMMAND & AI LOG</div>
+        <div class="terminal-container" id="terminal-log">
+          <div class="log-entry system">[SYSTEM] J.A.R.V.I.S. Mark VII Neural System Initialized.</div>
+          <div class="log-entry system">[SYSTEM] Web Audio Synthesizer online. Voice recognition engine active.</div>
+          <div class="log-entry jarvis">[JARVIS] Welcome back, Boss. All protocols operational. How may I assist you today?</div>
+        </div>
+
+        <form id="command-form" class="command-input-container">
+          <input type="text" id="command-input" placeholder="Enter command (e.g., 'status', 'stealth', 'weather')..." autocomplete="off">
+          <button type="submit" class="hud-btn send-btn">EXECUTE</button>
+        </form>
+      </aside>
+    </main>
+
+    <!-- Footer Status Line -->
+    <footer class="hud-footer">
+      <div class="footer-segment">LOC: STARK TOWER LAB // SEC LEVEL 10</div>
+      <div class="footer-segment text-center">J.A.R.V.I.S. Mark VII Professional Edition</div>
+      <div class="footer-segment text-right">PROTOCOL: ONLINE</div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
