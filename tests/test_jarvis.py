@@ -1,5 +1,5 @@
 """
-Unit and Integration tests for JARVIS tools, safety engine, and configuration.
+Unit and Integration tests for JARVIS tools, safety engine, configuration, backup, and GUI.
 """
 
 import os
@@ -10,6 +10,7 @@ from jarvis.safety import SafetyEngine
 from jarvis.tools.file_tool import FileTools
 from jarvis.tools.shell_tool import ShellTools
 from jarvis.tools.app_builder import AppBuilderTools
+from jarvis.history_backup import BackupEngine, get_backup_engine
 
 
 def test_config():
@@ -53,6 +54,27 @@ def test_file_tools(tmp_path):
     res_del = FileTools.delete_file(str(test_file))
     assert res_del["success"] is True
     assert not os.path.exists(test_file)
+
+
+def test_backup_and_rollback(tmp_path):
+    backup_dir = tmp_path / ".backups"
+    engine = get_backup_engine(backup_dir=str(backup_dir))
+
+    target_file = tmp_path / "undo_test.txt"
+
+    # 1. Write file (create)
+    res1 = FileTools.write_file(str(target_file), "Version 1")
+    assert res1["success"] is True
+
+    # 2. Modify file
+    res2 = FileTools.write_file(str(target_file), "Version 2")
+    assert res2["success"] is True
+    assert (tmp_path / "undo_test.txt").read_text() == "Version 2"
+
+    # 3. Rollback modification
+    rollback_res = engine.rollback_last()
+    assert rollback_res["success"] is True
+    assert (tmp_path / "undo_test.txt").read_text() == "Version 1"
 
 
 def test_shell_tools():

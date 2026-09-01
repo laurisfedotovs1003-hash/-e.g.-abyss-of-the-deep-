@@ -10,6 +10,7 @@ from jarvis.safety import SafetyEngine
 from jarvis.tools.file_tool import FileTools, FILE_TOOL_DEFINITIONS
 from jarvis.tools.shell_tool import ShellTools, SHELL_TOOL_DEFINITIONS
 from jarvis.tools.app_builder import AppBuilderTools, APP_BUILDER_TOOL_DEFINITIONS
+from jarvis.history_backup import get_backup_engine, BACKUP_TOOL_DEFINITIONS
 
 
 SYSTEM_PROMPT = """Du bist JARVIS, ein hochintelligenter, autonomer KI-Assistent für das System des Benutzers.
@@ -39,9 +40,11 @@ class JarvisAgent:
             {"role": "system", "content": SYSTEM_PROMPT}
         ]
 
+        self.backup_engine = get_backup_engine()
         # Combine tools
-        self.tools = FILE_TOOL_DEFINITIONS + SHELL_TOOL_DEFINITIONS + APP_BUILDER_TOOL_DEFINITIONS
+        self.tools = FILE_TOOL_DEFINITIONS + SHELL_TOOL_DEFINITIONS + APP_BUILDER_TOOL_DEFINITIONS + BACKUP_TOOL_DEFINITIONS
         self.tool_map = {
+            "rollback_last_action": lambda **kw: self.backup_engine.rollback_last(),
             "read_file": lambda **kw: FileTools.read_file(**kw),
             "write_file": lambda **kw: FileTools.write_file(**kw),
             "list_files": lambda **kw: FileTools.list_files(**kw),

@@ -17,3 +17,4 @@ dependencies = [
 
 [project.scripts]
 jarvis = "jarvis.main:main"
+jarvis-gui = "jarvis.gui:main"

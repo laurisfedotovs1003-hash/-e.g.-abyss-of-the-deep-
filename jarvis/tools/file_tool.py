@@ -5,6 +5,7 @@ File Management Tools for JARVIS.
 import os
 import glob
 from typing import Dict, Any, List
+from jarvis.history_backup import get_backup_engine
 
 
 class FileTools:
@@ -29,6 +30,10 @@ class FileTools:
             os.makedirs(os.path.dirname(abs_path), exist_ok=True)
             if os.path.exists(abs_path) and not overwrite:
                 return {"success": False, "error": f"Datei '{filepath}' existiert bereits und overwrite=False."}
+
+            # Backup prior state
+            get_backup_engine().backup_file(abs_path, action="modify" if os.path.exists(abs_path) else "create")
+
             with open(abs_path, "w", encoding="utf-8") as f:
                 f.write(content)
             return {"success": True, "message": f"Datei '{abs_path}' erfolgreich geschrieben.", "filepath": abs_path}
@@ -80,6 +85,7 @@ class FileTools:
             if os.path.isdir(abs_path):
                 os.rmdir(abs_path)
             else:
+                get_backup_engine().backup_file(abs_path, action="delete")
                 os.remove(abs_path)
             return {"success": True, "message": f"'{abs_path}' wurde gelöscht."}
         except Exception as e:
