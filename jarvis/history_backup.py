@@ -99,8 +99,12 @@ class BackupEngine:
                     shutil.copy2(backup_path, original_path)
                     os.remove(backup_path)
                     msg = f"Datei '{original_path}' wurde erfolgreich auf vorherigen Stand zurückgesetzt."
+                    self._save_manifest()
+                    return {"success": True, "message": msg, "path": original_path}
                 else:
                     msg = f"Backup-Datei für '{original_path}' nicht gefunden."
+                    self._save_manifest()
+                    return {"success": False, "message": msg, "path": original_path}
 
             self._save_manifest()
             return {"success": True, "message": msg, "path": original_path}
