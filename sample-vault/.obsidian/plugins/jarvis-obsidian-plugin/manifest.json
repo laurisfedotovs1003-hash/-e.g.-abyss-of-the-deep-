@@ -1,0 +1,9 @@
+{
+  "id": "jarvis-obsidian-plugin",
+  "name": "JARVIS Second Brain & AI Agent",
+  "version": "1.0.0",
+  "minAppVersion": "0.15.0",
+  "description": "Native Obsidian Plugin for JARVIS AI Agent: auto-upgrades notes, Second Brain memory search, dynamic skills, and interactive sidebar chat.",
+  "author": "JARVIS AI",
+  "isDesktopOnly": false
+}
