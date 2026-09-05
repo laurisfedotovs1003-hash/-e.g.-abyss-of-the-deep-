@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JARVIS - Obsidian Second Brain Agent</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #0d1117;
+      color: #c9d1d9;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .jarvis-glow {
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+    }
+    .jarvis-border {
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #30363d;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-gray-900 border-b border-gray-800 p-4 flex justify-between items-center jarvis-glow">
+    <div class="flex items-center space-x-3">
+      <div class="w-4 h-4 rounded-full bg-cyan-400 animate-pulse"></div>
+      <h1 class="text-xl font-bold text-cyan-400 tracking-wider">JARVIS // SECOND BRAIN AGENT</h1>
+    </div>
+    <div id="status-badge" class="px-3 py-1 bg-cyan-900 text-cyan-300 text-xs rounded-full border border-cyan-500">
+      SYSTEM ONLINE
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- Sidebar: Memory & System Stats -->
+    <aside class="w-1/4 bg-gray-900 border-r border-gray-800 p-4 flex flex-col justify-between overflow-y-auto custom-scrollbar">
+      <div>
+        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-4">Second Brain Memory</h2>
+
+        <div class="bg-gray-800 p-3 rounded-lg mb-3 border border-gray-700">
+          <div class="text-xs text-gray-400">Indexed Note Chunks</div>
+          <div id="stat-chunks" class="text-2xl font-bold text-cyan-400">0</div>
+        </div>
+
+        <div class="bg-gray-800 p-3 rounded-lg mb-3 border border-gray-700">
+          <div class="text-xs text-gray-400">Vault Notes</div>
+          <div id="stat-notes" class="text-2xl font-bold text-cyan-400">0</div>
+        </div>
+
+        <h2 class="text-sm font-semibold text-gray-400 uppercase tracking-widest mt-6 mb-3">Active Skills & Plugins</h2>
+        <div id="skills-list" class="space-y-2 text-xs">
+          <!-- Skills loaded here -->
+        </div>
+      </div>
+
+      <div class="space-y-2 mt-4">
+        <button onclick="upgradeVault()" class="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded text-xs transition duration-200 shadow">
+          ⚡ Upgrade & Organize Vault
+        </button>
+        <button onclick="createNewSkillPrompt()" class="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded text-xs transition duration-200 shadow">
+          🛠️ Generate New Skill / Plugin
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Chat Interface -->
+    <main class="flex-1 flex flex-col bg-gray-950">
+      <!-- Chat Messages Area -->
+      <div id="chat-box" class="flex-1 p-6 overflow-y-auto space-y-4 custom-scrollbar">
+        <div class="flex items-start space-x-3">
+          <div class="bg-cyan-900 p-2 rounded-full text-cyan-300 font-bold text-xs">JARVIS</div>
+          <div class="bg-gray-800 p-3 rounded-lg max-w-2xl border border-gray-700 text-sm">
+            Greetings! I am <strong>JARVIS</strong>, your Obsidian Second Brain AI Agent. I keep your notes upgraded, indexed, and can create new plugins and skills for you automatically. How may I assist you today?
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input Area -->
+      <div class="p-4 bg-gray-900 border-t border-gray-800 flex space-x-3">
+        <input id="user-input" type="text" placeholder="Ask JARVIS, search memory, or request a new plugin..."
+               class="flex-1 bg-gray-800 text-white px-4 py-2 rounded-lg border border-gray-700 focus:outline-none focus:border-cyan-400 text-sm"
+               onkeypress="if(event.key === 'Enter') sendMessage()">
+        <button onclick="sendMessage()" class="bg-cyan-500 hover:bg-cyan-400 text-gray-900 font-bold px-6 py-2 rounded-lg text-sm transition">
+          Send
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    async function fetchStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        document.getElementById('stat-chunks').innerText = data.memoryStats.totalChunks;
+        document.getElementById('stat-notes').innerText = data.memoryStats.totalNotesIndexed;
+
+        const skillsContainer = document.getElementById('skills-list');
+        skillsContainer.innerHTML = data.skills.map(s =>
+          `<div class="p-2 bg-gray-800 border border-gray-700 rounded text-cyan-300 flex justify-between">
+            <span>⚙️ ${s}</span>
+            <span class="text-gray-500 text-2xs">Active</span>
+          </div>`
+        ).join('');
+      } catch (err) {
+        console.error("Failed to load status:", err);
+      }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('user-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendMessage('User', text, 'user');
+      input.value = '';
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await res.json();
+        appendMessage('JARVIS', data.message, 'jarvis');
+        fetchStatus();
+      } catch (err) {
+        appendMessage('JARVIS', 'Error connecting to agent core.', 'jarvis');
+      }
+    }
+
+    async function upgradeVault() {
+      appendMessage('User', '⚡ Requesting Obsidian Vault Upgrade & Organization...', 'user');
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: 'upgrade vault' })
+        });
+        const data = await res.json();
+        appendMessage('JARVIS', data.message, 'jarvis');
+        fetchStatus();
+      } catch (err) {
+        appendMessage('JARVIS', 'Failed to upgrade vault.', 'jarvis');
+      }
+    }
+
+    async function createNewSkillPrompt() {
+      const name = prompt("Enter skill / plugin name (e.g. text_summarizer):");
+      if (!name) return;
+      appendMessage('User', `🛠️ Requesting creation of new skill '${name}'...`, 'user');
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: `create skill name: ${name}` })
+        });
+        const data = await res.json();
+        appendMessage('JARVIS', data.message, 'jarvis');
+        fetchStatus();
+      } catch (err) {
+        appendMessage('JARVIS', 'Failed to create skill.', 'jarvis');
+      }
+    }
+
+    function appendMessage(sender, text, type) {
+      const chatBox = document.getElementById('chat-box');
+      const div = document.createElement('div');
+      div.className = "flex items-start space-x-3";
+
+      const badgeClass = type === 'user' ? 'bg-purple-900 text-purple-300' : 'bg-cyan-900 text-cyan-300';
+      const formattedText = text.replace(/\n/g, '<br>');
+
+      div.innerHTML = `
+        <div class="${badgeClass} p-2 rounded-full font-bold text-xs">${sender}</div>
+        <div class="bg-gray-800 p-3 rounded-lg max-w-2xl border border-gray-700 text-sm text-gray-200">
+          ${formattedText}
+        </div>
+      `;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    fetchStatus();
+  </script>
+</body>
+</html>
